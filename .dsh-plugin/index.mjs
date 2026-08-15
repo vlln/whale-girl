@@ -17,6 +17,7 @@ import { deriveActivity, mergeCelebrate } from './src/activity.mjs'
 import { sanitizeAssetPath, contentTypeFor, ASSETS_PATH } from './src/assets.mjs'
 import { applyAction, isCrossOrigin } from './src/interact.mjs'
 import { parseTurnEvent } from './src/session-events.mjs'
+import { createSessionView, applySessionView, titleFromLog } from './src/sessions.mjs'
 import { normalizeState, serializeState } from './src/persistence.mjs'
 import { createSignals } from './src/signals.mjs'
 import { NAMESPACE, DEFAULTS, buildSchema, validateConfig } from './src/config.mjs'
@@ -24,8 +25,8 @@ import { NAMESPACE, DEFAULTS, buildSchema, validateConfig } from './src/config.m
 export const name = 'whale-girl'
 export const inject = ['jobs', 'agents', 'sessions', 'settings', 'webServer']
 // 路由端点 re-export（来源 src/routes.mjs；保持既有导出面）。
-import { STATE_PATH, INTERACT_PATH, CONFIG_PATH, ROUTE_PREFIX, EVENTS_PATH } from './src/routes.mjs'
-export { STATE_PATH, INTERACT_PATH, CONFIG_PATH, ROUTE_PREFIX, EVENTS_PATH }
+import { STATE_PATH, INTERACT_PATH, CONFIG_PATH, ROUTE_PREFIX, EVENTS_PATH, SESSIONS_PATH } from './src/routes.mjs'
+export { STATE_PATH, INTERACT_PATH, CONFIG_PATH, ROUTE_PREFIX, EVENTS_PATH, SESSIONS_PATH }
 /** /interact 请求体大小上限（动作只需几字节）。 */
 export const BODY_LIMIT = 1024
 
@@ -152,10 +153,27 @@ export function apply(ctx) {
   // - 等待批准（sessionWait）：turn/end 的 reason.kind === 'blocked'（等待用户批准/权限）
   // - 回合完成（turnCompleted）：turn/end 边沿（每完成一个 turn 触发一次庆祝）
   const sessionsSvc = typeof ctx.get === 'function' ? ctx.get('sessions') : undefined
+  // 会话标题权威源（dsh-session-title）：重启后历史 session/title 事件不可见，
+  // 靠该服务补全（get(session)?.title）。缺席时退回事件日志标题。
+  const sessionTitleSvc = typeof ctx.get === 'function' ? ctx.get('sessionTitle') : undefined
   let sessionThink = false
   let sessionWait = false
   let turnCompleted = false // 单轮翻转标志：activity() 消费后复位
   const activeTurns = new Map() // sessionId → turn/start 未 turn/end 计数
+  // 每会话活动账本（/sessions 端点）：sessionId → { id, title, activity, since }。
+  // 事件驱动更新（session/event 回调）；sessions 服务缺席时降级为仅事件视图。
+  const sessionViews = new Map()
+  // 标题解析：事件日志（titleFromLog）优先，sessionTitle 服务兜底（重启后补历史标题）。
+  const resolveSessionTitle = (s) => {
+    const fromLog = titleFromLog(Array.isArray(s?.events) ? s.events : [])
+    if (fromLog !== null) return fromLog
+    try {
+      const snapshot = sessionTitleSvc?.get?.(s)
+      return typeof snapshot?.title === 'string' && snapshot.title !== '' ? snapshot.title : null
+    } catch {
+      return null
+    }
+  }
   const sessionUpdate = () => {
     // 从当前会话列表与 turn 边沿聚合（sessions 服务缺席时保持上次值——宠物照常跑）。
     if (sessionsSvc === undefined || typeof sessionsSvc.list !== 'function') return
@@ -171,6 +189,38 @@ export function apply(ctx) {
     } catch {
       // 列表异常：保留上次值
     }
+  }
+  // 每会话活动快照（/sessions 端点）：事件视图为主，sessions 列表兜底——
+  // 未在事件流出现的会话（如插件加载前已存在）用列表事件日志补标题、
+  // header.createdAt 补 since；列表缺席时只返回事件视图（宠物照常跑）。
+  // 列表可用时清理由已结束会话（不再出现在列表）的视图——"会话结束后框消失"。
+  const sessionsSnapshot = () => {
+    if (sessionsSvc !== undefined && typeof sessionsSvc.list === 'function') {
+      try {
+        const live = new Set()
+        for (const s of sessionsSvc.list()) {
+          if (s === null || typeof s !== 'object') continue
+          const id = typeof s.id === 'string' ? s.id : null
+          if (id === null) continue
+          live.add(id)
+          const since = typeof s.header?.createdAt === 'number' ? s.header.createdAt : Date.now()
+          const title = resolveSessionTitle(s)
+          const known = sessionViews.get(id)
+          if (known === undefined) {
+            sessionViews.set(id, { id, title, activity: 'done', since })
+          } else if (known.title === null && title !== null) {
+            // 已知会话也补标题（重启后标题服务能拿到、事件流看不到的场景）。
+            sessionViews.set(id, { ...known, title })
+          }
+        }
+        for (const id of sessionViews.keys()) {
+          if (!live.has(id)) sessionViews.delete(id)
+        }
+      } catch {
+        // 列表异常：保持事件视图
+      }
+    }
+    return [...sessionViews.values()]
   }
 
   // ---- pet 服务信号（开放性窄缝，供其他插件 ctx.pet.onSignal 订阅）----
@@ -294,6 +344,15 @@ export function apply(ctx) {
       ctx.on('session/event', (session, event) => {
         const id = typeof session?.id === 'string' ? session.id : null
         if (id === null) return
+        // 每会话活动账本（/sessions 端点数据源）：turn/start → thinking、
+        // tool/call → tool:<name>、turn/end（blocked → waiting / 其余 → done）、
+        // session/title → 标题。会话未出现在事件流时在 /sessions 兜底
+        // （titleFromLog 从列表 meta/事件日志取标题，since 取 header.createdAt）。
+        const known = sessionViews.get(id)
+        const since = known?.since ?? (typeof session?.header?.createdAt === 'number' ? session.header.createdAt : Date.now())
+        const base = known ?? { ...createSessionView(id, since), title: resolveSessionTitle(session) }
+        const view = applySessionView(base, event)
+        if (known === undefined || view !== known) sessionViews.set(id, view)
         const parsed = parseTurnEvent(event)
         if (parsed === null) return
         if (parsed.kind === 'start') {
@@ -382,6 +441,25 @@ export function apply(ctx) {
             }
             const result = applyAction(state, body.action, configRef.replies)
             json(res, result.status, result.body, { 'cache-control': 'no-store' })
+          } catch (error) {
+            json(res, 500, { error: error instanceof Error ? error.message : String(error) })
+          }
+        },
+      }),
+      // ---- 每会话活动（/sessions 端点）----
+      // 外部消费者（桌面伴侣的消息框）按会话读取活动：thinking / tool:<name> /
+      // waiting / done。数据源是 session/event 事件流（sessionViews 账本），
+      // sessions 列表兜底补标题与开始时间；禁缓存（活动随事件实时变化）。
+      webServer.register({
+        kind: 'exact',
+        path: SESSIONS_PATH,
+        handler: async (req, res) => {
+          try {
+            if (req.method !== 'GET') {
+              json(res, 405, { error: 'method not allowed; use GET' }, { allow: 'GET' })
+              return
+            }
+            json(res, 200, sessionsSnapshot(), { 'cache-control': 'no-store' })
           } catch (error) {
             json(res, 500, { error: error instanceof Error ? error.message : String(error) })
           }
