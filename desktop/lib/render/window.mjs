@@ -43,7 +43,9 @@ function createWindow() {
       preload: join(RENDER_DIR, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false, // preload 用 ESM 风格 require-free；保持最小
+      // sandbox:true —— preload 只用 contextBridge/ipcRenderer（sandboxed preload 原生可用）；
+      // renderer 无 Node 全局、只暴露 whaleGirl.*，安全边界最大化（Copilot 建议）。
+      sandbox: true,
     },
   })
   win.setAlwaysOnTop(true, 'screen-saver')

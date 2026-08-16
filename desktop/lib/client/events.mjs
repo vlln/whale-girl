@@ -15,6 +15,18 @@ const DEFAULT_RETRY_MS = 3000
 const HEARTBEAT_GUARD_MS = 90000
 
 /**
+ * 找下一个 SSE 事件块分隔点（空行）。SSE 规范允许 LF("\n\n") 或 CRLF("\r\n\r\n")——
+ * 返回分隔符之前的 index（即块内容结束处）；无分隔返回 -1。
+ */
+function findBlockBoundary(buffer) {
+  const lf = buffer.indexOf('\n\n')
+  const crlf = buffer.indexOf('\r\n\r\n')
+  if (lf === -1) return crlf
+  if (crlf === -1) return lf
+  return Math.min(lf, crlf)
+}
+
+/**
  * SSE 订阅器（EventEmitter，事件：event / reconnect / error / open）。
  * @param {string} url 事件流 URL
  * @param {object} [opts]
@@ -54,11 +66,13 @@ export function createSSEClient(url, { retryMs = DEFAULT_RETRY_MS, signal } = {}
         const { done, value } = await reader.read()
         if (done) break
         buffer += decoder.decode(value, { stream: true })
-        // 以空行分隔事件块
+        // 以空行分隔事件块。SSE 规范允许 LF(\n) 与 CRLF(\r\n)：同时匹配两种，
+        // 取最早出现的分隔点，避免仅识别 "\n\n" 时 CRLF 服务的缓冲永不切块。
         let sep
-        while ((sep = buffer.indexOf('\n\n')) !== -1) {
-          const raw = buffer.slice(0, sep + 2)
-          buffer = buffer.slice(sep + 2)
+        while ((sep = findBlockBoundary(buffer)) !== -1) {
+          const raw = buffer.slice(0, sep)
+          // 跳过分隔符自身的换行（\n\n 或 \r\n\r\n）
+          buffer = buffer.slice(sep + (buffer[sep] === '\r' ? 4 : 2))
           handleChunk(raw)
         }
       }
@@ -94,9 +108,16 @@ export function createSSEClient(url, { retryMs = DEFAULT_RETRY_MS, signal } = {}
   let reconnectTimer = null
   function scheduleReconnect() {
     if (closed) return
-    reconnectTimer = setTimeout(async () => {
+    // 先清掉未触发的旧 timer，避免并发调度重复重连（Copilot: timer 覆盖泄漏）。
+    if (reconnectTimer !== null) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null
+      if (closed) return
       em.emit('reconnect')
-      await streamOnce()
+      streamOnce()
     }, retry)
   }
 
@@ -111,7 +132,10 @@ export function createSSEClient(url, { retryMs = DEFAULT_RETRY_MS, signal } = {}
   function close() {
     closed = true
     clearInterval(guard)
-    clearingTimeout(reconnectTimer)
+    if (reconnectTimer !== null) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
     controller?.abort()
     em.emit('close')
   }
@@ -120,8 +144,4 @@ export function createSSEClient(url, { retryMs = DEFAULT_RETRY_MS, signal } = {}
   streamOnce()
 
   return { events: em, close }
-}
-
-function clearingTimeout(t) {
-  if (t) clearTimeout(t)
 }

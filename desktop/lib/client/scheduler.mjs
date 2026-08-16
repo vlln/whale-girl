@@ -88,13 +88,15 @@ export function stepScheduler(sched, { snapshot, now = Date.now() } = {}) {
 }
 
 /** interact 后重置空闲 + eat/play 瞬发（对齐 whale-girl：互动瞬发优先于醒觉——
- *  喂食/玩耍直接播 eat/play；wake 只用于拖拽放下等非互动路径，桌面端无拖拽故不产生）。 */
-export function applyInteraction(sched, action) {
+ *  喂食/玩耍直接播 eat/play；wake 只用于拖拽放下等非互动路径，桌面端无拖拽故不产生）。
+ *  `now` 显式注入（默认 Date.now()），与 stepScheduler 的可测时间源保持一致
+ *  （Copilot：允许测试注入确定性时间，而非直接调用 Date.now()）。 */
+export function applyInteraction(sched, action, now = Date.now()) {
   const decision = wakeFromInteraction({ sleeping: sched.sleeping })
   sched.sleeping = decision.sleeping
   sched.idleSince = 0
-  sched.joyUntil = Date.now() + JOY_MS
+  sched.joyUntil = now + JOY_MS
   sched.transient = action === 'feed' ? 'eat' : 'play'
-  sched.transientUntil = Date.now() + TRANSIENT_MS
+  sched.transientUntil = now + TRANSIENT_MS
   return sched
 }

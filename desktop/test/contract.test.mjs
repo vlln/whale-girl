@@ -18,6 +18,23 @@ import { STATE_NAMES } from '../lib/client/state-names.mjs'
 
 const BASE = loadConfig().baseURL
 
+// live 套件依赖真实 DSH web。探活一次（缓存）来给 describe 动态 skip：
+// 服务不可达 → 套件整体 skip（CI / 无服务环境不误判失败）；WG_LIVE=1 则强制要求真跑。
+let _liveProbe = null
+async function liveReachable() {
+  if (_liveProbe === null) {
+    try {
+      await fetch(`${BASE}/whale-girl/state`, { cache: 'no-store' })
+      _liveProbe = true
+    } catch {
+      _liveProbe = false
+    }
+  }
+  return _liveProbe
+}
+const liveAvailable = await liveReachable()
+const forceLive = process.env.WG_LIVE === '1'
+
 // ---------- 状态机纯函数 ----------
 
 describe('state machine (pickState)', () => {
@@ -182,8 +199,9 @@ describe('SSE client', () => {
 })
 
 // ---------- 端到端契约（需 DSH web 运行中） ----------
+// live 套件依赖真实 DSH web。服务不可达时整组 skip（CI 不误判）；WG_LIVE=1 强制真跑（不可达即失败）。
 
-describe('whale-girl contract (live)', { skip: false }, () => {
+describe('whale-girl contract (live)', { skip: !liveAvailable && !forceLive }, () => {
   let client
   let companion
 

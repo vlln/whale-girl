@@ -68,17 +68,37 @@ export async function createCompanion(opts, hooks = {}) {
   }
 
   // —— 状态轮询 ——
+  // 并发守卫（Copilot）：refreshState 可能被 setInterval / SSE 事件 / interact 同时调用。
+  // 用 in-flight + coalesce 保证同一时刻仅一个请求在途：在途期间到达的调用打标记，
+  // 完成后若期间有新的刷新请求则再跑一次，避免并发覆盖与竞态，也不丢最新状态。
+  let refreshing = false
+  let pendingRefresh = false
   const refreshState = async () => {
-    try {
-      const body = await client.getState()
-      snapshot = body
-      await applyRemoteConfig()
-      hooks.onSnapshot?.(snapshot)
-      computeAnimation()
-      return body
-    } catch (err) {
-      log.warn('GET /state 失败:', err.message)
+    if (refreshing) {
+      pendingRefresh = true // 在途：coalesce，待本轮结束再触发一轮
       return null
+    }
+    refreshing = true
+    try {
+      do {
+        pendingRefresh = false
+        try {
+          const body = await client.getState()
+          snapshot = body
+          await applyRemoteConfig()
+          hooks.onSnapshot?.(snapshot)
+          computeAnimation()
+          if (!pendingRefresh) return body
+        } catch (err) {
+          log.warn('GET /state 失败:', err.message)
+          // 在途期间若有新的刷新请求积累，仍重试一轮
+          return null
+        }
+      } while (pendingRefresh)
+      return snapshot
+    } finally {
+      refreshing = false
+      pendingRefresh = false
     }
   }
 
@@ -134,7 +154,7 @@ export async function createCompanion(opts, hooks = {}) {
   const interact = async (action = 'feed') => {
     try {
       const body = await client.interact(action)
-      applyInteraction(sched, action) // 本地瞬发/喜悦/唤醒
+      applyInteraction(sched, action, Date.now()) // 本地瞬发/喜悦/唤醒（带注入时间源）
       const reply = body?.reply ?? null
       log.info(`互动 ${action}: ${reply ?? ''}`)
       hooks.onReply?.(reply)

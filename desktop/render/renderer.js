@@ -74,14 +74,19 @@
     if (!(cfg.frames > 1)) return // 单帧状态由 CSS motion 表现（本端简化为静止）
 
     const step = () => {
-      const frameW = Math.floor(sheetCache.get(sheetKey(cfg.sheet)).w / cfg.frames)
+      const entry = sheetCache.get(sheetKey(cfg.sheet))
+      if (!entry) return // sheet 未就绪：跳过本帧（不裁切）
+      const frames = framesOf(cfg)
+      const frameW = Math.floor(entry.w / frames)
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.save()
       ctx.translate(canvas.width / 2, canvas.height / 2)
       ctx.scale(flip, 1)
+      // 源矩形用 sprite 自身尺寸（entry.w/entry.h），不用 canvas 尺寸——
+      // canvas 缩放/尺寸变化不会产生源越界裁切（Copilot: 源高度 entry.h）。
       ctx.drawImage(
-        sheetCache.get(sheetKey(cfg.sheet)).img,
-        frame * frameW, 0, frameW, canvas.height,
+        entry.img,
+        frame * frameW, 0, frameW, entry.h,
         -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height,
       )
       ctx.restore()
