@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src data:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <title>whale-girl 桌面伴侣</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; overflow: hidden;
+      background: transparent !important;
+      width: 100vw; height: 100vh;
+      user-select: none; -webkit-user-select: none;
+    }
+    #stage {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+      pointer-events: none; /* 视口层的点击穿透：只有 pet 本体可交互 */
+      touch-action: none;
+    }
+    canvas {
+      pointer-events: auto; /* 画布本身可点击/拖拽 */
+      cursor: grab;
+      image-rendering: pixelated;
+    }
+    canvas:active { cursor: grabbing; }
+    #bubble {
+      position: fixed; left: 50%; bottom: 96px;
+      transform: translateX(-50%);
+      background: rgba(24,28,38,.94); color: #E8EBF2;
+      font: 12px system-ui, sans-serif;
+      padding: 6px 10px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.1);
+      white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: opacity .18s ease-out;
+      z-index: 10;
+    }
+    #bubble.show { opacity: 1; }
+    #badge {
+      position: fixed; left: 50%; bottom: 4px; transform: translateX(-50%);
+      background: rgba(27,30,40,.9); color: #E8EBF2;
+      font: 10px/1.6 system-ui, sans-serif;
+      padding: 2px 8px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.08);
+      white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: opacity .18s ease-out; z-index: 10;
+    }
+    #badge.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="pet" width="110" height="110"></canvas>
+  </div>
+  <div id="bubble"></div>
+  <div id="badge"></div>
+  <script src="./renderer.js"></script>
+</body>
+</html>

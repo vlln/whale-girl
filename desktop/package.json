@@ -1,0 +1,23 @@
+{
+  "name": "whale-girl-desktop",
+  "version": "0.1.0",
+  "description": "whale-girl 桌面伴侣：把 DSH Web GUI 内的鲸鱼娘宠物渲染到操作系统桌面",
+  "type": "module",
+  "main": "lib/index.mjs",
+  "bin": {
+    "whale-girl-desktop": "lib/index.mjs"
+  },
+  "scripts": {
+    "start": "node lib/index.mjs",
+    "start:headless": "node lib/index.mjs --headless",
+    "start:desktop": "electron .",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^43.4.0"
+  }
+}
