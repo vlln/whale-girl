@@ -18,7 +18,8 @@
 官方 **bundle 插件** 格式（仓库根 `package.json` 的 `dsh.bundle` + `dsh.client`）。经官方 profile 管理：
 
 ```sh
-dsh plugin --profile web add "github:vlln/whale-girl#main"   # 推荐：git 源一行（构建产物已入库）
+dsh plugin --profile web add "github:vlln/whale-girl#main"   # git 源一行（构建产物已入库）
+# 或 npm 源：dsh plugin --profile web add whale-girl@0.1.0
 # 或本地目录：dsh plugin --profile web add <whale-girl 本地路径>
 ```
 
@@ -49,12 +50,12 @@ dsh plugin --profile web add "github:vlln/whale-girl#main"   # 推荐：git 源�
 
 ```sh
 # 前置：Node ≥18；桌面渲染壳需 Rust 工具链（cargo）
-cd desktop
-npm install                          # 引擎零依赖（无第三方包）
-cd src-tauri && cargo build --release  # 首次编译约 5-15 分钟；产物 target/release/whale-girl-desktop（约 12MB）
+npm install -g whale-girl-desktop   # npm 源安装（引擎 + Tauri 渲染壳源码随包分发）
+whale-girl-desktop --headless       # 无窗模式可用：presence 心跳 + 状态轮询 + SSE
+cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # 首次编译约 5-15 分钟；产物 target/release/whale-girl-desktop（约 12MB）
 ./target/release/whale-girl-desktop   # 启动透明置顶桌宠（默认连本机 DSH 3080）
 # WHALE_GIRL_BASE_URL=http://IP:PORT 指向非本机 DSH
-# 无窗模式：cd desktop && npm run start:headless  # presence 心跳 + 状态轮询 + SSE
+# 或从源码：cd desktop && npm install && cd src-tauri && cargo build --release
 ```
 
 - 消费 whale-girl 既有公开端点（`/state`、`/events`、`/presence`、`/interact`、`/config`、`/assets`），**不改动插件本体**；运行期间网页端宠物自动隐藏（presence 契约），退出或崩溃（TTL 45s 过期）后恢复。
