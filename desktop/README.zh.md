@@ -1,4 +1,4 @@
-<p align="center">中文 | [English](README.md)</p>
+<p align="center">中文 | <a href="README.md">English</a></p>
 
 # whale-girl-desktop
 
