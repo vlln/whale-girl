@@ -11,7 +11,8 @@
     "lib/src",
     "lib/assets/characters",
     "lib/assets/manifest.json",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "README.zh.md"
   ],
   "exports": {
     ".": "./lib/index.mjs",

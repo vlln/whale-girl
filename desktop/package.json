@@ -13,7 +13,8 @@
     "src-tauri",
     "README.md",
     "BUILD-RUN.md",
-    "DESIGN.md"
+    "DESIGN.md",
+    "README.zh.md"
   ],
   "scripts": {
     "start": "node lib/index.mjs",

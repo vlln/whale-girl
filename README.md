@@ -1,9 +1,12 @@
+<p align="center">[中文](README.zh.md) | English</p>
+
 <h1 align="center">whale-girl</h1>
 
 <p align="center">
-  <strong>DSH Web GUI 内的桌面宠物（QQ 宠物形态）</strong><br/>
-  右下角悬浮的积累型伙伴：可拖拽、可投喂/玩耍，陪伴你的工作台脉搏——
-  完成任务/会话/活跃陪伴时长积累成资历等级、称号与回忆。
+  <strong>A desktop pet in the DSH Web GUI (QQ-pet style)</strong><br/>
+  A persistent companion floating bottom-right: draggable, feedable, playable —
+  completed tasks, sessions, and companionship time accrue into seniority levels,
+  titles, and memories.
 </p>
 
 <p align="center">
@@ -13,114 +16,114 @@
 
 ---
 
-## 安装
+## Installation
 
-官方 **bundle 插件** 格式（仓库根 `package.json` 的 `dsh.bundle` + `dsh.client`）。经官方 profile 管理：
+Official **bundle plugin** (`dsh.bundle` + `dsh.client` in root `package.json`), managed via the official profile:
 
 ```sh
-dsh plugin --profile web add "github:vlln/whale-girl#main"   # git 源一行（构建产物已入库）
-# 或 npm 源：dsh plugin --profile web add whale-girl@0.1.0
-# 或本地目录：dsh plugin --profile web add <whale-girl 本地路径>
+dsh plugin --profile web add "github:vlln/whale-girl#main"   # single-line git source (build artifacts committed)
+# or npm source: dsh plugin --profile web add whale-girl@0.1.0
+# or local directory: dsh plugin --profile web add <path-to-whale-girl>
 ```
 
-装完 **重启 web**（bundle 层在启动时合成），右下角出现宠物：点击弹出菜单（🍗 喂食 / 🎾 玩耍），拖拽可移动；hover 显示状态条（资历等级/任务数/最近共同回忆）。初始配置/欢迎页（onboarding）宠物隐藏。
+**Restart web** after installing (bundle layers compose at startup); the pet appears bottom-right: click for its menu (🍗 feed / 🎾 play), drag to move, hover for the status bar (seniority level / task count / recent shared memories). Hidden on onboarding pages.
 
-更新插件时 `dsh plugin --profile web update whale-girl`（或换 git 源 ref），重启生效。
+Update via `dsh plugin --profile web update whale-girl` (or switch the git ref), then restart.
 
-## 使用
+## Usage
 
-| 你做什么 / 发生什么 | 宠物表现 |
+| You / event | Pet behavior |
 |---|---|
-| 拖拽宠物 | 被斜向拉扯（`drag`） |
-| 点击菜单 🍗 喂食 / 🎾 玩耍 | 啃咬/抛接球（`eat`/`play`）→ 开心（`joy`） |
-| 空闲 ≥60s | 打盹（`sleep`）；互动时醒过来（`wake`） |
-| 任务完成 / 升级 / 称号 / 回合完成 | 举手欢呼（`celebrate`） |
-| 任务失败 / 请求出错 | 惊吓（`error`）→ 失落（`disappointed`） |
-| 新会话开始 | 挥手欢迎（`welcome`） |
-| 任一会话运行/思考中 | 沉思陪伴（`think`，偶尔 `working` 工作姿态） |
-| 等待批准 | 期待等待（`wait`） |
-| 周期游走 | 散步（`walk`） |
-| 常态 | 待机（`idle`，随机眨眼/转身） |
+| Drag the pet | Stretched diagonally (`drag`) |
+| Menu 🍗 feed / 🎾 play | Chomping / ball toss (`eat`/`play`) → joy (`joy`) |
+| Idle ≥60s | Naps (`sleep`); wakes on interaction (`wake`) |
+| Task done / level-up / title / round done | Cheers (`celebrate`) |
+| Task failed / request error | Startled (`error`) → disappointed (`disappointed`) |
+| New session | Waves welcome (`welcome`) |
+| Session running / thinking | Pensive company (`think`, occasional `working`) |
+| Awaiting approval | Expectant waiting (`wait`) |
+| Periodic wandering | Walking (`walk`) |
+| Default | Idle standby (`idle`, random blinks / turns) |
 
-完整状态机（优先级/转换语义/触发源）见 [docs/state-machine.md](docs/state-machine.md)。
+Full state machine (priorities / transitions / triggers): [docs/state-machine.md](docs/state-machine.md).
 
-## 桌面伴侣（可选）
+## Desktop Companion (Optional)
 
-`desktop/` 是**独立桌面伴侣应用**（Node 引擎 + Tauri 渲染壳，零运行时依赖），把鲸鱼娘渲染到操作系统桌面常驻。**不随 `dsh plugin` 安装**——想要桌宠的用户自行启用：
+`desktop/` is a **standalone companion app** (Node engine + Tauri shell, zero runtime deps) that keeps the whale girl resident on your OS desktop. **Not installed via `dsh plugin`** — enable it yourself:
 
 ```sh
-# 前置：Node ≥18；桌面渲染壳需 Rust 工具链（cargo）
-npm install -g whale-girl-desktop   # npm 源安装（引擎 + Tauri 渲染壳源码随包分发）
-whale-girl-desktop --headless       # 无窗模式可用：presence 心跳 + 状态轮询 + SSE
-cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # 首次编译约 5-15 分钟；产物 target/release/whale-girl-desktop（约 12MB）
-./target/release/whale-girl-desktop   # 启动透明置顶桌宠（默认连本机 DSH 3080）
-# WHALE_GIRL_BASE_URL=http://IP:PORT 指向非本机 DSH
-# 或从源码：cd desktop && npm install && cd src-tauri && cargo build --release
+# Prereqs: Node ≥18; the rendering shell needs Rust (cargo)
+npm install -g whale-girl-desktop   # npm install (engine + Tauri shell source included)
+whale-girl-desktop --headless       # headless: presence heartbeat + state polling + SSE
+cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # first build ~5-15 min; artifact target/release/whale-girl-desktop (~12MB)
+./target/release/whale-girl-desktop   # transparent always-on-top desktop pet (defaults to local DSH on 3080)
+# WHALE_GIRL_BASE_URL=http://IP:PORT points at a non-local DSH
+# or from source: cd desktop && npm install && cd src-tauri && cargo build --release
 ```
 
-- 消费 whale-girl 既有公开端点（`/state`、`/events`、`/presence`、`/interact`、`/config`、`/assets`），**不改动插件本体**；运行期间网页端宠物自动隐藏（presence 契约），退出或崩溃（TTL 45s 过期）后恢复。
-- 渲染壳：Tauri v2（推荐，体积 ~12MB）；Electron 遗留壳保留（`npm i -D electron` 后可用）。
-- 设计与契约见 `desktop/DESIGN.md`、`desktop/BUILD-RUN.md`。
+- Uses whale-girl's public endpoints (`/state`, `/events`, `/presence`, `/interact`, `/config`, `/assets`) **without touching the plugin**; the in-page pet hides while it runs (presence contract) and returns after exit/crash (TTL 45s).
+- Shell: Tauri v2 (recommended, ~12MB); legacy Electron shell kept (`npm i -D electron`).
+- Design & contracts: `desktop/DESIGN.md`, `desktop/BUILD-RUN.md`.
 
-## 状态预览
+## State Preview
 
-| 状态 | 触发 | 预览 |
+| State | Trigger | Preview |
 |---|---|---|
-| `idle` | 常态待机 | ![idle](docs/preview/idle.gif) |
-| `working` | 会话思考期随机工作插曲 | ![working](docs/preview/working.gif) |
-| `celebrate` | 任务完成/升级/称号/回合完成 | ![celebrate](docs/preview/celebrate.gif) |
-| `error` | 任务失败/请求出错 | ![error](docs/preview/error.gif) |
-| `disappointed` | 失败后短时失落 | ![disappointed](docs/preview/disappointed.gif) |
-| `joy` | 投喂/玩耍后开心 | ![joy](docs/preview/joy.gif) |
-| `eat` | 点击投喂 | ![eat](docs/preview/eat.gif) |
-| `play` | 点击玩耍 | ![play](docs/preview/play.gif) |
-| `drag` | 拖拽中 | ![drag](docs/preview/drag.gif) |
-| `walk` | 周期游走 | ![walk](docs/preview/walk.gif) |
-| `sleep` | 空闲 ≥60s | ![sleep](docs/preview/sleep.gif) |
-| `wake` | 睡醒过渡 | ![wake](docs/preview/wake.gif) |
-| `welcome` | 新会话 | ![welcome](docs/preview/welcome.gif) |
-| `think` | 会话思考陪伴 | ![think](docs/preview/think.gif) |
-| `wait` | 等待批准 | ![wait](docs/preview/wait.gif) |
+| `idle` | Default standby | ![idle](docs/preview/idle.gif) |
+| `working` | Random work spell while session thinks | ![working](docs/preview/working.gif) |
+| `celebrate` | Task done / level-up / title / round done | ![celebrate](docs/preview/celebrate.gif) |
+| `error` | Task failed / request error | ![error](docs/preview/error.gif) |
+| `disappointed` | Brief dejection after failure | ![disappointed](docs/preview/disappointed.gif) |
+| `joy` | Happy after feeding / playing | ![joy](docs/preview/joy.gif) |
+| `eat` | Click to feed | ![eat](docs/preview/eat.gif) |
+| `play` | Click to play | ![play](docs/preview/play.gif) |
+| `drag` | While dragging | ![drag](docs/preview/drag.gif) |
+| `walk` | Periodic wandering | ![walk](docs/preview/walk.gif) |
+| `sleep` | Idle ≥60s | ![sleep](docs/preview/sleep.gif) |
+| `wake` | Wake-up transition | ![wake](docs/preview/wake.gif) |
+| `welcome` | New session | ![welcome](docs/preview/welcome.gif) |
+| `think` | Company while session thinks | ![think](docs/preview/think.gif) |
+| `wait` | Awaiting approval | ![wait](docs/preview/wait.gif) |
 
-## 配置
+## Configuration
 
-参数经宿主 settings 配置，`<dshHome>/settings.yaml` 的 `whale-girl:` section（或设置 UI）修改后**热生效免重启**：
+Edit the `whale-girl:` section in `<dshHome>/settings.yaml` (or the settings UI); changes **apply live, no restart**:
 
 ```yaml
 whale-girl:
-  enabled: true      # 网页端渲染开关（与桌面伴侣并存时设 false 关闭网页端宠物，避免双宠物）
-  size: 110          # 宠物尺寸 px（64–160）
-  opacity: 1         # 常态透明度（0.2–1）
+  enabled: true      # web render toggle (false disables the in-page pet while a desktop companion runs)
+  size: 110          # pet size px (64–160)
+  opacity: 1         # default opacity (0.2–1)
   walk:
-    enabled: true    # 游走开关
+    enabled: true    # wandering toggle
   sleepAfterMs: 60000
 ```
 
-完整配置项清单与语义层（XP/称号）封闭说明见 `lib/src/config.mjs`。**语义层不可配**（改 XP/称号阈值会破坏积累账本一致性）。
+Full option list and why the semantic layer (XP / titles) is sealed: `lib/src/config.mjs`. **Not configurable** (changing XP / title thresholds would break the accumulation ledger).
 
-## 角色
+## Characters
 
-菜单「🎭 换角色」循环切换角色（或设置 localStorage `whale-girl:character`）；**manifest 仅 1 个角色时按钮置灰**（悬停提示「暂无其他角色」）。每个角色提供**全部 15 状态**素材（素材全量契约，见 [docs/sprites-spec.md](docs/sprites-spec.md)）；贡献新角色指南见 [docs/adding-a-character.md](docs/adding-a-character.md)。
+🎭 "Switch Character" cycles characters (or set `whale-girl:character` in localStorage); the button is **greyed out when the manifest has a single character** ("No other characters available"). Every character ships **all 15 states** (full contract: [docs/sprites-spec.md](docs/sprites-spec.md)); new characters: [docs/adding-a-character.md](docs/adding-a-character.md).
 
-## 作为参考实现
+## Reference Implementation
 
-whale-girl 是官方 **bundle 插件格式**的完整范本（`dsh.bundle` + `cordis.patch.yml` + `lib/` 布局，随官方机制演进）——开发新插件可对照：
+whale-girl is a complete **bundle plugin format** exemplar (`dsh.bundle` + `cordis.patch.yml` + `lib/`, evolving with the official mechanism) — model new plugins on it:
 
-- **结构**：`lib/`（入口/纯逻辑/client/素材）与 docs/decisions/scripts 分离，见根 [AGENTS.md](AGENTS.md)
-- **规范**：门禁（`scripts/gates/run.mjs`）+ 决策记录 + 素材全量契约；开发引导见 plugin-registry 的 [plugin-registry-create skill](https://github.com/vlln/plugin-registry/tree/main/skills/plugin-registry-create) 与 [cookbook](https://github.com/vlln/plugin-registry/blob/main/docs/cookbook/creating-a-repository-plugin.md)，踩过的坑见 [gotchas](https://github.com/vlln/plugin-registry/blob/main/skills/plugin-registry-create/references/gotchas.md)
+- **Structure**: `lib/` (entry / logic / client / assets) separate from docs, decisions, scripts — root [AGENTS.md](AGENTS.md)
+- **Conventions**: gates (`scripts/gates/run.mjs`) + decision records + full asset contracts; guidance: plugin-registry's [plugin-registry-create skill](https://github.com/vlln/plugin-registry/tree/main/skills/plugin-registry-create), [cookbook](https://github.com/vlln/plugin-registry/blob/main/docs/cookbook/creating-a-repository-plugin.md), [gotchas](https://github.com/vlln/plugin-registry/blob/main/skills/plugin-registry-create/references/gotchas.md)
 
-## 贡献
+## Contributing
 
-**欢迎提交 issue 和建议**——你的反馈直接决定宠物的下一步：
+**Issues and suggestions welcome** — your feedback shapes the pet's next steps:
 
-- 🐛 **遇到问题**：提交 issue，附复现步骤、浏览器与 dsh 版本；客户端问题附控制台报错更佳
-- 💡 **功能建议**：参考 [docs/state-machine.md](docs/state-machine.md) 与 [docs/growth-system.md](docs/growth-system.md) 了解现状，说明期待效果
-- 🎨 **新角色**：见 [docs/adding-a-character.md](docs/adding-a-character.md) §贡献角色速览——只读契约，产出 15 张 sheet + manifest 条目，本地 `verify-assets` 验收
-- 🔧 **代码贡献**：每个非平凡改动带决策记录（`decisions/`）、门禁自证、单一性质提交（见 [docs/AGENTS.md](docs/AGENTS.md) 与根 [AGENTS.md](AGENTS.md)）
+- 🐛 **Bug**: file an issue with repro steps, browser & dsh versions; console errors for client issues
+- 💡 **Feature ideas**: see [docs/state-machine.md](docs/state-machine.md) and [docs/growth-system.md](docs/growth-system.md), describe the expected effect
+- 🎨 **New characters**: [docs/adding-a-character.md](docs/adding-a-character.md) §quick guide — read-only contract, 15 sheets + manifest entries, validated by `verify-assets`
+- 🔧 **Code**: every non-trivial change needs a decision record (`decisions/`), gate self-checks, single-purpose commits ([docs/AGENTS.md](docs/AGENTS.md), root [AGENTS.md](AGENTS.md))
 
-## 致谢
+## Acknowledgements
 
-角色形象由 [ZipZipPipe](https://space.bilibili.com/4168597) 创作（《鲸鱼娘》表情包角色），sprites 基于其角色设定生成。
+Character by [ZipZipPipe](https://space.bilibili.com/4168597) (the "Whale Girl" sticker character); sprites generated from their design.
 
 ## License
 

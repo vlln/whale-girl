@@ -16,7 +16,8 @@ export const BUDGETS = {
   'AGENTS.md': 6000,          // 根常驻：L2 核心规则
   'docs/AGENTS.md': 2200,     // 文档标准
   'decisions/README.md': 5500, // 决策记录契约
-  'README.md': 6500,          // 产品入口
+  'README.md': 9000,          // 产品入口（英文主文件，2026-08 起双语：拉丁字符密度高，上限从 6500 上调并保留余量）
+  'README.zh.md': 6500,       // 产品入口中文版（沿用原 README 上限；CJK 码元数 ≈ 字节/3）
 }
 
 /** 校验常驻文件字数。返回 { ok, errors }。 */
