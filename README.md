@@ -110,7 +110,7 @@ Full option list and why the semantic layer (XP / titles) is sealed: `lib/src/co
 whale-girl is a complete **bundle plugin format** exemplar (`dsh.bundle` + `cordis.patch.yml` + `lib/`, evolving with the official mechanism) — model new plugins on it:
 
 - **Structure**: `lib/` (entry / logic / client / assets) separate from docs, decisions, scripts — root [AGENTS.md](AGENTS.md)
-- **Conventions**: gates (`scripts/gates/run.mjs`) + decision records + full asset contracts; guidance: plugin-registry's [plugin-registry-create skill](https://github.com/vlln/plugin-registry/tree/main/skills/plugin-registry-create), [cookbook](https://github.com/vlln/plugin-registry/blob/main/docs/cookbook/creating-a-repository-plugin.md), [gotchas](https://github.com/vlln/plugin-registry/blob/main/skills/plugin-registry-create/references/gotchas.md)
+- **Conventions**: gates (`scripts/gates/run.mjs`) + decision records + full asset contracts; guidance: plugin-registry's [make-dsh-plugin skill](https://github.com/vlln/plugin-registry/tree/main/skills/make-dsh-plugin), [cookbook](https://github.com/vlln/plugin-registry/blob/main/docs/cookbook/creating-a-plugin.md), [gotchas](https://github.com/vlln/plugin-registry/blob/main/skills/make-dsh-plugin/references/gotchas.md)
 
 ## Contributing
 
