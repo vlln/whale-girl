@@ -49,6 +49,18 @@ Update via `dsh plugin --profile web update whale-girl` (or switch the git ref),
 
 Full state machine (priorities / transitions / triggers): [docs/state-machine.md](docs/state-machine.md).
 
+## Background (Image / Video)
+
+The pet menu's **🖼️ Background** button (after 🍗 / 🎾 / 🎭) sets a full-screen DSH background:
+
+| Action | Effect |
+|---|---|
+| 📁 **Image** | Pick a local image (auto-compressed to ≤1600px JPEG) |
+| 🎬 **Video** | Pick a video (MP4 etc.) — muted, looping, `object-fit: cover` |
+| ↩️ **Reset** | Remove the background, restore the default theme |
+| **Opacity 0–100** | **100% = default background**; **0% = full background** |
+
+Covers the whole GUI (sidebar included) without intercepting clicks, survives theme switches, and persists across reloads (images in `localStorage`, videos in `IndexedDB`; import copies the file, so the source can be deleted). Playback pauses while the tab is hidden or opacity is 100%. Imports over 100MB are rejected and >40MB / >1920×1080 / >40fps warn in-panel (recommended: ≤1280×730, 24–30fps); the panel's **?** button explains this in-app. Thresholds and rationale: [decisions/implemented/feature/2026-08-19-background-image.md](decisions/implemented/feature/2026-08-19-background-image.md).
 ## Desktop Companion (Optional)
 
 `desktop/` is a **standalone companion app** (Node engine + Tauri shell, zero runtime deps) that keeps the whale girl resident on your OS desktop. **Not installed via `dsh plugin`** — enable it yourself:
