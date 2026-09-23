@@ -1,0 +1,4 @@
+# 仓内工具链（门禁正则 / 逐字节新鲜度比对 / POSIX 假设）统一消费 LF：
+# Windows 全局 autocrlf=true 的克隆会检出 CRLF，verify-decisions / verify-spec-states
+# 的行锚正则与 build-client --check 的字节比对在干净克隆上即失败。全仓文本检出归一为 LF。
+* text=auto eol=lf

@@ -46,6 +46,7 @@ insert 行挂载），但：`.dsh-plugin` 目录是只读仓库需 hack、client
 - 旧 `decisions/implemented/simplification/2026-08-10-migrate-to-official-repository-plugin.md`
   （迁移到 repository 形态的决策）被本文取代——0811 官方移除 repository 机制，反向迁移。
 - 本文后续被 [2026-08-13-standard-bundle-layout](2026-08-13-standard-bundle-layout.md) 部分取代——该记录把 `.dsh-plugin/` 目录收敛为 `lib/`（标准 bundle 布局），完成本文遗留的「与官方 bundle 生态割裂」缺口。
+- 后续（0907+ dsh）：本文 Consequences 里的 inject 补 `settings` 描述被 [2026-09-23-dsh-0907-node-half-compat](../bug-fix/2026-09-23-dsh-0907-node-half-compat.md) 部分取代（settings.register 移除，inject 收敛为 jobs/sessions/webServer）；`webServer`/`httpServer` 服务名以 `lib/index.mjs` 现状为准。
 - 门禁：`node scripts/gates/run.mjs`（11 门禁）+ `node scripts/build-client.mjs --check`
   全过；单测 112 例全过；验证站端到端（client 挂载 + 宠物渲染，headless Chrome 实证）。
 

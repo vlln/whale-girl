@@ -3,3 +3,4 @@ node_modules/
 *.log
 lib/assets/raw/
 lib/dsh-plugin-assets/
+package-lock.json

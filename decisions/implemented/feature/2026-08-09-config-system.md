@@ -29,5 +29,6 @@ Status: implemented
 ## Consequences
 
 - 用户可通过 settings.yaml（或未来宿主设置 UI）调整体验层参数，热生效免重启；窗口时长与客户端行为参数统一走 configRef/--pet-size。
+- 后续（0907+ dsh）：settings.register API 随宿主设置模型改版移除，Node half settings 接入面由 [2026-09-23-dsh-0907-node-half-compat](../bug-fix/2026-09-23-dsh-0907-node-half-compat.md) 部分取代（Config 导出 + apply 注入）；DEFAULTS/schema/validateConfig、/config、configRevision 门控不变。
 - 已知边界：本项为 L1 最小集（尺寸/透明度/游走/睡眠/窗口时长），回话文案池与菜单面板为后续（第 2 项开放性方向）；语义层封闭由 `verify-settings-schema` 门禁（后续项）强化。
 - 关联：docs/architecture-evolution.md 配置节；架构演进第 1 项。
