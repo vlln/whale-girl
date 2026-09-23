@@ -86,21 +86,22 @@ cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # 首
 
 ## 配置
 
-**设置 → 插件 → 鲸鱼娘**（面板卡片）：高频子集——网页端显示、尺寸、透明度、游走、睡眠等待，以及投喂/玩耍回话文案池（每行一条）。**保存即生效、免重启**。
+**设置 → 插件 → whale-girl**（宿主设置 UI 由插件 `Config` schema 自动生成表单）：全部体验层参数——网页端显示、尺寸、透明度、游走、睡眠等待、各窗口时长、投喂/玩耍回话文案池。**保存即写入 profile patch，经 loader 重挂载热生效（免重启）**。
 
-全量与高级项（如各窗口时长）仍在 `<dshHome>/settings.yaml` 的 `whale-girl:` section：
+高级用法：直接编辑 profile 的 `cordis.patch.yml`（`~/.dsh/profiles/<profile>/`）：
 
 ```yaml
-whale-girl:
-  enabled: true      # 网页端渲染开关（与桌面伴侣并存时设 false 关闭网页端宠物，避免双宠物）
-  size: 110          # 宠物尺寸 px（64–160）
-  opacity: 1         # 常态透明度（0.2–1）
-  walk:
-    enabled: true    # 游走开关
-  sleepAfterMs: 60000
+- id: whale-girl
+  config:
+    enabled: true      # 网页端渲染开关（与桌面伴侣并存时设 false 关闭网页端宠物，避免双宠物）
+    size: 110          # 宠物尺寸 px（64–160）
+    opacity: 1         # 常态透明度（0.2–1）
+    walk:
+      enabled: true    # 游走开关
+    sleepAfterMs: 60000
 ```
 
-完整配置项清单与语义层（XP/称号）封闭说明见 `lib/src/config.mjs`。**语义层不可配**（改 XP/称号阈值会破坏积累账本一致性）。
+完整配置项清单与语义层（XP/称号）封闭说明见 `lib/src/config.mjs`。**语义层不可配**（改 XP/称号阈值会破坏积累账本一致性）。旧版 `<dshHome>/settings.yaml` 的 `whale-girl:` section 会在升级后首次启动时由宿主一次性导入 profile patch。
 
 ## 角色
 
