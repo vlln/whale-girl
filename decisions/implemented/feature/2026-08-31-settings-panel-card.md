@@ -11,6 +11,10 @@ Status: implemented
 L1 体验层「用户可感知并有意愿调整的参数」缺最后一块 UI：普通用户无法发现、也无法在 GUI
 内调整尺寸/透明度/游走/睡眠/回话文案。
 
+## 当前兼容边界
+
+宿主接口接入部分由 [DSH 0.1.7 兼容决策](../bug-fix/2026-09-29-dsh-017-compat.md) 调整；旧卡片不在目标新宿主中加载。
+
 ## Decision
 
 - **client half 注册官方设置面板卡片**：keyed 槽 `settings.plugin.item`（官方

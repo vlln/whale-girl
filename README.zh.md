@@ -86,21 +86,11 @@ cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # 首
 
 ## 配置
 
-**设置 → 插件 → 鲸鱼娘**（面板卡片）：高频子集——网页端显示、尺寸、透明度、游走、睡眠等待，以及投喂/玩耍回话文案池（每行一条）。**保存即生效、免重启**。
+此分支针对 DSH 0.1.7-rc.2。配置使用插件导出的 `Config` schema 和 Cordis 条目配置；旧 `settings.yaml` 命名空间及卡片不自动迁移。客户端经 `/whale-girl/config` 读取实时值。
 
-全量与高级项（如各窗口时长）仍在 `<dshHome>/settings.yaml` 的 `whale-girl:` section：
+原生设置表单在 bundle 安装中的端到端验证尚未完成，此兼容修复不代表旧设置卡片已恢复。迁移时保留既有设置。
 
-```yaml
-whale-girl:
-  enabled: true      # 网页端渲染开关（与桌面伴侣并存时设 false 关闭网页端宠物，避免双宠物）
-  size: 110          # 宠物尺寸 px（64–160）
-  opacity: 1         # 常态透明度（0.2–1）
-  walk:
-    enabled: true    # 游走开关
-  sleepAfterMs: 60000
-```
-
-完整配置项清单与语义层（XP/称号）封闭说明见 `lib/src/config.mjs`。**语义层不可配**（改 XP/称号阈值会破坏积累账本一致性）。
+配置项与默认值见 `lib/src/config.mjs`。XP、称号阈值和账本语义保持固定。
 
 ## 角色
 

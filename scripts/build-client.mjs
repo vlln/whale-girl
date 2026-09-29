@@ -5,6 +5,7 @@
 // 本地 node_modules/.bin → $DSH_CHECKOUT/node_modules/.bin → /tmp/dsh-0808/node_modules/.bin；
 // 全部缺失时明确跳过并说明（该门禁声明消费构建产物，缺失外部工具时跳过而非假装通过）。
 import { spawnSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import { mkdtempSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -15,6 +16,8 @@ const ENTRY = 'lib/client/index.mjs'
 const OUTPUT = join(ROOT, 'lib', 'client.js')
 
 function resolveEsbuildBin() {
+  // Node launches esbuild's JS CLI on both Windows and POSIX.
+  try { return createRequire(import.meta.url).resolve('esbuild/bin/esbuild') } catch {}
   const candidates = [
     join(ROOT, 'node_modules/.bin/esbuild'),
     ...(process.env.DSH_CHECKOUT ? [join(process.env.DSH_CHECKOUT, 'node_modules/.bin/esbuild')] : []),
@@ -51,9 +54,11 @@ export function generate({ check = false, root = ROOT } = {}) {
   }
   const tmpDir = mkdtempSync(join(tmpdir(), 'whale-girl-'))
   const tmpOut = join(tmpDir, 'client.js')
+  const useNode = /[\\/]bin[\\/]esbuild$/.test(esbuildBin)
   const res = spawnSync(
-    esbuildBin,
+    useNode ? process.execPath : esbuildBin,
     [
+      ...(useNode ? [esbuildBin] : []),
       ENTRY,
       '--bundle',
       '--format=cjs',
@@ -65,7 +70,7 @@ export function generate({ check = false, root = ROOT } = {}) {
     { cwd: root, encoding: 'utf8' },
   )
   if (res.status !== 0) {
-    return { ok: false, errors: [`esbuild 失败：${res.stderr.trim()}`] }
+    return { ok: false, errors: [`esbuild 失败：${res.error?.message ?? res.stderr?.trim()}`] }
   }
   const body = readFileSync(tmpOut, 'utf8')
   const code = Buffer.from(

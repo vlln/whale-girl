@@ -29,7 +29,7 @@
     }
   },
   "dependencies": {
-    "schemastery": "^3.18.0"
+    "@deepseek-ai/schemastery": "^3.18.4"
   },
   "scripts": {
     "gates": "node scripts/gates/run.mjs",

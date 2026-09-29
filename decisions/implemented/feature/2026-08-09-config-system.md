@@ -6,6 +6,10 @@ Status: implemented
 
 用户想调整宠物「性格」（尺寸/透明度/游走/睡眠/窗口时长），现状全是源码常量（client 的 SPRITE_MAX/SLEEP_AFTER_MS/游走参数、Node 的 ERROR_MS/WELCOME_MS 等）——无任何配置面，必须 fork 源码。架构演进设计（docs/architecture-evolution.md）要求「可配置」，且 subagent 评审明确：**L1 体验层可配、L2 语义层（XP/称号/曲线）代码级封闭、L3 安全层不可配**。
 
+## 当前兼容边界
+
+宿主接口接入部分由 [DSH 0.1.7 兼容决策](../bug-fix/2026-09-29-dsh-017-compat.md) 调整；本文的旧 settings API 与卡片说明不适用于目标新宿主。
+
 ## Decision
 
 - **src/config.mjs**（新增，零宿主依赖可单测）：`DEFAULTS`（体验层默认值单一来源）+ `buildSchema()`（schemastery schema，默认值= DEFAULTS 防双源漂移）+ `validateConfig`（跨字段校验：walk 成对 min/max）。含 14 项：size/opacity/walk{6}/sleepAfterMs/pollMs/idlePauseMs/bubbleMs/welcomeMs/celebrateMs/errorMs/disappointedMs。

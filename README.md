@@ -89,21 +89,11 @@ cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # fir
 
 ## Configuration
 
-**Settings → Plugins → Whale Girl** (in-page card): the high-frequency subset — show on page, size, opacity, wandering, sleep delay, and the feed/play reply pools (one per line). Changes **save and apply live, no restart**.
+This branch targets DSH 0.1.7-rc.2. Configuration uses the plugin's exported `Config` schema and Cordis entry config; the legacy `settings.yaml` namespace/card is not migrated automatically. The client reads live values through `/whale-girl/config`.
 
-The full option list stays in the `whale-girl:` section of `<dshHome>/settings.yaml` (advanced/additional knobs like window durations):
+The native settings form still needs end-to-end verification for bundle installations. This compatibility patch does not claim that the old settings card is restored. Keep existing settings available when migrating.
 
-```yaml
-whale-girl:
-  enabled: true      # web render toggle (false disables the in-page pet while a desktop companion runs)
-  size: 110          # pet size px (64–160)
-  opacity: 1         # default opacity (0.2–1)
-  walk:
-    enabled: true    # wandering toggle
-  sleepAfterMs: 60000
-```
-
-Full option list and why the semantic layer (XP / titles) is sealed: `lib/src/config.mjs`. **Not configurable** (changing XP / title thresholds would break the accumulation ledger).
+The option schema and defaults are in `lib/src/config.mjs`. XP, title thresholds and ledger semantics remain fixed.
 
 ## Characters
 
