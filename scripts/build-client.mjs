@@ -59,7 +59,9 @@ export function generate({ check = false, root = ROOT } = {}) {
       '--format=cjs',
       '--platform=browser',
       '--target=es2020',
+      // react 与官方组件库由平台种子表提供，不打进 bundle（bundle 内 require 调用）。
       '--external:react',
+      '--external:@deepseek-ai/dsh-client-ui-primitives',
       `--outfile=${tmpOut}`,
     ],
     { cwd: root, encoding: 'utf8' },
