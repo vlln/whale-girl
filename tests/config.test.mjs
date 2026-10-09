@@ -9,6 +9,7 @@ test('NAMESPACE 与 DEFAULTS 完整性', () => {
   assert.equal(typeof DEFAULTS.size, 'number')
   assert.equal(DEFAULTS.size, 110)
   assert.equal(DEFAULTS.enabled, true)
+  assert.equal(DEFAULTS.sessionMemory, false, '会话记忆默认关（opt-in）')
   assert.equal(DEFAULTS.walk.enabled, true)
   assert.equal(DEFAULTS.walk.maxWaitMs, 40000)
 })
@@ -20,6 +21,7 @@ test('buildSchema：条目 Config 用，解析出 volatile 实时引用', () => 
   assert.equal(result.issues, undefined)
   // live 字段是宿主注入的 { get() } 引用（不重挂载原地换值的传输面），含嵌套叶与数组叶。
   assert.equal(result.value.size.get(), 110)
+  assert.equal(result.value.sessionMemory.get(), false, 'sessionMemory 是 volatile 叶')
   assert.equal(result.value.walk.enabled.get(), true)
   assert.deepEqual(result.value.replies.feed.get(), DEFAULTS.replies.feed)
   // 未标 volatile 的容器保持普通对象（volatile 只落在叶上）。

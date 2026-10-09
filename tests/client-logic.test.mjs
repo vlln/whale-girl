@@ -2,7 +2,7 @@
 // v2：零负反馈——无 hunger/mood 属性状态；情绪只由事件瞬发 + 互动喜悦。
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { pickState, TRANSIENT_MS, WAKE_MS, JOY_MS, ROUND_CELEBRATE_MS, STATE_NAMES, PLAYBACK_MODES, PLAYBACK_MIN_FRAMES, deriveSessionMood, STATE_TABLE, nextWorkingRhythm, detectTurnCompleted, shouldWake, nextBlinkAt, nextFacingAt, wakeFromInteraction } from '../lib/client/logic.mjs'
+import { pickState, TRANSIENT_MS, WAKE_MS, JOY_MS, ROUND_CELEBRATE_MS, STATE_NAMES, PLAYBACK_MODES, PLAYBACK_MIN_FRAMES, deriveSessionMood, STATE_TABLE, nextWorkingRhythm, detectTurnCompleted, shouldWake, nextBlinkAt, nextFacingAt, wakeFromInteraction, memoryLine } from '../lib/client/logic.mjs'
 
 const IDLE = { activity: { name: 'idle', until: 0 }, dragging: false, transient: null, sleeping: false, joyUntil: 0, now: 1000 }
 
@@ -338,4 +338,30 @@ test('交互醒觉：feed/play 结束后同样不回 sleep（sleeping 已归零�
   assert.equal(pickState({ ...IDLE, sleeping: afterRelease.sleeping, joyUntil: 800 }), 'idle')
   // 对照：旧行为（sleeping 未归零）→ joy 结束后立即回 sleep
   assert.equal(pickState({ ...IDLE, sleeping: true, joyUntil: 800 }), 'sleep')
+})
+
+test('memoryLine：最近 2 条完成任务 + 超出条数报总数', () => {
+  const line = memoryLine({
+    distance: 0,
+    tasks: [
+      { label: '写测试', ok: true },
+      { label: '修复路由', ok: true },
+      { label: '重构', ok: true },
+    ],
+  })
+  assert.equal(line, '上次你们完成了「修复路由」、「重构」等 3 项')
+})
+
+test('memoryLine：失败任务不进气泡；无可展示任务 → null', () => {
+  assert.equal(memoryLine({ distance: 0, tasks: [{ label: 'X', ok: false }] }), null)
+  assert.equal(memoryLine({ distance: 0, tasks: [] }), null)
+  assert.equal(memoryLine(null), null)
+  assert.equal(memoryLine(undefined), null)
+  assert.equal(memoryLine({ distance: 0, tasks: 'junk' }), null)
+})
+
+test('memoryLine：fork 回读（distance>0）点明分支前；长标签截 14 字', () => {
+  const line = memoryLine({ distance: 2, tasks: [{ label: '一二三四五六七八九十一二三四五', ok: true }] })
+  assert.equal(line, '上次在分支前的会话里完成了「一二三四五六七八九十一二三四…」')
+  assert.ok(!line.includes('一二三四五六七八九十一二三四五'), '完整长标签被截断')
 })

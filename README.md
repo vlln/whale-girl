@@ -89,14 +89,15 @@ cd "$(npm root -g)/whale-girl-desktop/src-tauri" && cargo build --release  # fir
 
 ## Configuration
 
-**Plugins → Installed → whale-girl bundle page** (config card): the high-frequency subset — show on page, size, opacity, wandering, sleep delay, and the feed/play reply pools (one per line). Changes **apply immediately, no restart** (a switch writes on click; numbers and reply pools write on blur or Enter).
-The card's first row is an **update row**: it checks the source once on mount (git installs by commit, registry installs by version) and shows the verdict plus the installed short commit; a newer revision turns the button into "Update to <target>…". An update only rewrites the profile's dependencies and lockfile — the entry's `config:` (size, opacity, reply copy) and every other patch entry stay untouched, and the enabled state is preserved. It reinstalls through DSH's profile package manager — first the exact revision just checked, then the line the profile records (a branch or tag keeps tracking it) — and reports the host's outcome: hot-applied, **restart DeepSeek Harness to apply**, overridden, or failed (with the host's error code). Version and source already appear in the bundle page's source section, so the row does not repeat them. A **local-path install** (`dsh plugin add <dir>`) that is a git checkout declaring a repository follows that repository's default branch; otherwise, or without a package manager, the row only says no source can be checked.
+**Plugins → Installed → whale-girl bundle page** (config card): the high-frequency subset — show on page, session memory, size, opacity, wandering, sleep delay, and the feed/play reply pools (one per line). **Session memory** (off by default) records completed-task milestones to a local file and greets you with last time's progress on resume/fork — local only, never model context, never uploaded; off stops all reads/writes (file kept). Changes **apply immediately, no restart** (a switch writes on click; numbers and reply pools write on blur or Enter).
+The card's first row is an **update row**: it checks the source once on mount (git installs by commit, registry installs by version) and shows the verdict plus the installed short commit; a newer revision turns the button into "Update to <target>…". An update only rewrites the profile's dependencies and lockfile (entry `config:` untouched, enabled state preserved), reinstalling via DSH's profile package manager — exact revision first, then the recorded line — and reports the host's outcome: hot-applied, **restart DeepSeek Harness to apply**, overridden, or failed (host error code included). A **local-path install** that is a git checkout declaring a repository follows its default branch; otherwise the row only says no source can be checked.
 
 The full option list lives in the plugin entry's `config` in the profile patch (`<dshHome>/profiles/<profile>/cordis.patch.yml`); a `whale-girl:` section in `<dshHome>/settings.yaml` is imported into that entry once:
 
 ```yaml
 whale-girl:
   enabled: true      # web render toggle (false disables the in-page pet while a desktop companion runs)
+  sessionMemory: false # session memory (local file; see the config card)
   size: 110          # pet size px (64–160)
   opacity: 1         # default opacity (0.2–1)
   walk:
