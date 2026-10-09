@@ -49,8 +49,8 @@ function makeCheckout({ sha = LOCAL_SHA, worktree = false, packed = false, detac
   return dir
 }
 
-const managerOf = (source, { enabled = true, installs = [] } = {}) => () => ({
-  listBundles: async () => [{ name: 'whale-girl', source, enabled, installed: true }],
+const managerOf = (source, { enabled = true, installs = [], version } = {}) => () => ({
+  listBundles: async () => [{ name: 'whale-girl', source, ...(version === undefined ? {} : { version }), enabled, installed: true }],
   installBundle: async (spec, options) => { installs.push({ spec, options }); return { application: 'restart-required', changed: true } },
 })
 /** 假网络：只认 GitHub/npm 的那几个 URL，按 payload 表回答；值是 Error 时抛出（模拟 403 等）。 */
@@ -175,13 +175,18 @@ test('status：本地路径安装认不出上游的三种情况都给 local-sour
   assert.equal(noBranch.reason, 'local-source', '拿不到默认分支名不猜 main')
 })
 
-test('status：宿主认得包但记录没有 source → host-outdated；宿主根本没列出这个包 → no-source', async () => {
+test('status：宿主认得包但既无 source 也无 version（旧宿主）→ host-outdated；给了 version → no-source', async () => {
   const profileDir = makeProfile(gitLock(LOCAL_SHA))
-  // 宿主有安装能力、也列出这个包，但记录里没有 source 字段（旧宿主的 BundleInfo 没有该字段）：
-  // 文案要引导升级宿主，不能混同于「查不到上游」。
+  // 宿主有安装能力、也列出这个包，但记录里既没有 source 也没有 version（0.2.0-rc.2 时代的
+  // BundleInfo 两个字段都没有）：无法确认宿主年代，文案引导升级宿主，不能混同于「查不到上游」。
   const outdated = await createUpdateHost({ self: SELF, profileDir, managerOf: managerOf(undefined), fetchJson: fakeFetch({}) }).status()
   assert.equal(outdated.reason, 'host-outdated')
   assert.equal(outdated.canUpdate, false)
+  // 0.2.1-alpha.2 宿主给出 version、没有 source（如安装自带条目没记录来源）：宿主并不旧，
+  // 是真·没有可跟的上游——按 no-source 处理，不误导用户升级宿主。
+  const versionOnly = await createUpdateHost({ self: SELF, profileDir, managerOf: managerOf(undefined, { version: '0.2.0' }), fetchJson: fakeFetch({}) }).status()
+  assert.equal(versionOnly.reason, 'no-source')
+  assert.equal(versionOnly.current.version, '0.2.0')
   // 宿主的列表里根本没有这个包：真正的「查不到来源」。
   const notInstalled = () => ({ listBundles: async () => [] })
   const missing = await createUpdateHost({ self: SELF, profileDir, managerOf: notInstalled, fetchJson: fakeFetch({}) }).status()
@@ -191,6 +196,16 @@ test('status：宿主认得包但记录没有 source → host-outdated；宿主�
   assert.equal(limited.detail, 'HTTP 403')
   const broken = await createUpdateHost({ self: SELF, profileDir, managerOf: managerOf('github:vlln/whale-girl#main'), fetchJson: fakeFetch({ '/commits/main': httpError(500) }) }).status()
   assert.equal(broken.reason, 'check-failed')
+})
+
+test('status：current.version 优先取宿主 BundleInfo.version，锁文件与自身清单是回退', async () => {
+  // 宿主给了 version：优先于锁文件解析与自身清单（0.2.1-alpha.2 的 BundleInfo 直接给出已装版本）。
+  const hostVersion = makeProfile(registryLock('0.1.9'))
+  const withHost = await createUpdateHost({ self: SELF, profileDir: hostVersion, managerOf: managerOf('whale-girl@0.1.9', { version: '0.2.0' }), fetchJson: fakeFetch({ '/whale-girl': { 'dist-tags': { latest: '0.2.0' } } }) }).status()
+  assert.equal(withHost.current.version, '0.2.0')
+  // 宿主没给 version：回退锁文件解析（registry 安装的锁文件版本）。
+  const noHost = await createUpdateHost({ self: SELF, profileDir: hostVersion, managerOf: managerOf('whale-girl@0.1.9'), fetchJson: fakeFetch({ '/whale-girl': { 'dist-tags': { latest: '0.2.0' } } }) }).status()
+  assert.equal(noHost.current.version, '0.1.9')
 })
 
 test('apply：第二步 installBundle 真抛（锁超时）→ tracking-not-restored 且带钉住的 spec', async () => {

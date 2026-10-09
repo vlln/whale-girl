@@ -18,7 +18,7 @@ DSH 不为 profile 安装的插件提供升级入口：`dsh-client-ui-plugin-man
 - **只加更新，不重复版本**：包页的「来源信息」已经由页面画出所装版本与安装来源（`listBundles` 的 `source` 与包清单版本），卡片这一行不再显示一遍版本，只补页面没有的那件事——上游有没有新版、以及一键更新。有新版时状态行给出目标（git 装短提交、registry 装版本号），按钮文案里的版本号原样显示、不额外加 `v`。
 - **挂载时自动检查一次上游**（并缓存到组件状态），按钮文案跟随 macOS 的「检查更新…」约定：动词 + 省略号表示会有一段进行中的操作；检查中禁用并显示「检查中…」，更新中显示「更新中…」。
 - **检查走 Node half 的 `GET /whale-girl/update`**：客户端不直接访问上游（浏览器侧的 CSP/跨源与速率限制都不可控）。Node half 用 profile 记录下来的 spec 决定问哪里——git 安装问 `api.github.com/.../commits/<ref>`（`listBundles().source` 里的 spec 就是 profile 记的），registry 安装问 `registry.npmjs.org/<name>` 的 `dist-tags.latest`。
-- **已安装提交取自 profile 锁文件**：git 安装下只有 `pnpm-lock.yaml` 知道装的是哪个提交（`tar.gz/<sha>`），包的 `package.json` 版本号不随提交变化。
+- **已安装版本优先取宿主的 `BundleInfo.version`，锁文件与自身清单是回退**：`dsh-plugin-manager` 在 0.2.1-alpha.2 起把已装版本直接放进 `listBundles()` 的结果，比锁文件解析更直接（锁文件损坏/换布局时也还有版本可显示），宿主没给时回退锁文件解析（registry 版本），再回退包清单版本。已安装**提交**仍只认 profile 锁文件——git 安装下包的 `package.json` 版本号不随提交变化，宿主同样不提供提交。
 - **更新分两步，且认宿主的判断**：宿主用「`package.json` 里的依赖串变了没有」定位这次装的是哪个包，所以
   原样重装 profile 记的那条 spec 会被判 `ambiguous-install`（本机真实 `dsh web` 宿主实测）。因此先装刚检查到的
   确切提交/版本（依赖串一定变），再把依赖串换回 profile 记录的那条会前进的线（分支/标签/默认分支），更新一次仍然继续跟踪；
@@ -62,7 +62,7 @@ DSH 不为 profile 安装的插件提供升级入口：`dsh-client-ui-plugin-man
 - 配置只读（卡片显示「当前部署只读，无法修改。」）不影响这一行：那说的是条目配置的写面，而更新走宿主的 profile 包管理服务，宿主的插件页在同一个部署里同样提供安装/卸载。两者权限不同，所以不跟着卡片的 `disabled` 走。
 - 更新是两次 pnpm 运行（先确切提交、再换回跟踪的那条线），比单次慢约一倍；两次都失败会明确报错。
 - 检查依赖上游 API 的可用性（GitHub 未认证请求有速率限制）：检查失败只影响这一行的文案与按钮，宠物本体与既有配置读写不受影响。
-- **宿主版本要求**：检查/更新都要读宿主的 `BundleInfo.source`（profile 记录的安装来源）；该字段是上游在 `dsh-plugin-manager` 后来才加的（本机装的 0.2.0-rc.2 还没有）。更早宿主上本行显示「宿主版本过旧，无法检查更新（请升级 DSH）」，不产生崩溃或误导。
+- **宿主版本要求**：检查/更新要读宿主的 `BundleInfo.source`（profile 记录的安装来源）；该字段是上游在 `dsh-plugin-manager` 后来才加的（本机装的 0.2.0-rc.2 还没有）。host-outdated 的判据随 0.2.1-alpha.2 收紧：宿主**既不给 `source` 也不给 `version`**（两个字段都没有才是旧 BundleInfo）才报「宿主版本过旧，无法检查更新（请升级 DSH）」；宿主给了 `version` 而没有 `source`（如安装自带条目没记录来源）说明宿主并不旧，按「查不到上游」（no-source）呈现，不误导用户升级宿主。更早宿主上本行不产生崩溃或误导。
 - 本地路径安装点「更新」会把 profile 依赖从 `link:<目录>` 换成 `github:<owner>/<repo>#<默认分支>`：本地改动不再生效，换成了跟上游那条线——这正是「本地安装也跟 main」的含义，所以状态行与按钮都要在点之前写出来（「更新会改成跟 main」/「改跟 main…」）。目录不是 git 检出、或包没声明仓库时，仍旧显示「无法确认上游」。
 - 本地检出的 git 布局解析认 worktree：`.git` 是文件时顺着 `gitdir:` 找到真实 git 目录，再按 `commondir` 到公共目录里找分支引用与 packed-refs（worktree 的引用不在自己的目录里）。
 - 更新行的按钮由**纯函数**挑处理函数（`action.run` 指向检查或更新），组件只调 `action.run()`；`tests/update-state.test.mjs` 逐状态断言接线，客户端交互按仓库约定另有 `scripts/verify-client-behavior.mjs` 的 `update-row` 场景（点检查 → 点更新 → 断言真的发出 `POST`）。
