@@ -23,8 +23,8 @@
 Official **bundle plugin** (`dsh.bundle` + `dsh.client` in root `package.json`), managed via the official profile:
 
 ```sh
-dsh plugin --profile web add "github:vlln/whale-girl#main"   # single-line git source (build artifacts committed)
-# or npm source: dsh plugin --profile web add whale-girl@0.2.4
+dsh plugin --profile web add whale-girl                        # npm source (build artifacts ship in the package)
+# to track the latest commit instead: dsh plugin --profile web add "github:vlln/whale-girl#main"
 # or local directory: dsh plugin --profile web add <path-to-whale-girl>
 ```
 

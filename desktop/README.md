@@ -29,7 +29,7 @@ Point it at a non-local DSH instance: `WHALE_GIRL_BASE_URL=http://IP:PORT` (defa
 
 ## Prerequisites
 
-- The whale-girl plugin installed in DSH (`dsh plugin --profile web add "github:vlln/whale-girl#main"`)
+- The whale-girl plugin installed in DSH (`dsh plugin --profile web add whale-girl`)
 - Node ≥18; cargo (Rust toolchain) for desktop rendering
 
 ## Behavior

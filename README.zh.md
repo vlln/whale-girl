@@ -20,8 +20,8 @@
 官方 **bundle 插件** 格式（仓库根 `package.json` 的 `dsh.bundle` + `dsh.client`）。经官方 profile 管理：
 
 ```sh
-dsh plugin --profile web add "github:vlln/whale-girl#main"   # git 源一行（构建产物已入库）
-# 或 npm 源：dsh plugin --profile web add whale-girl@0.2.4
+dsh plugin --profile web add whale-girl                        # npm 源（构建产物随包发布）
+# 想跟最新提交而不是发布版：dsh plugin --profile web add "github:vlln/whale-girl#main"
 # 或本地目录：dsh plugin --profile web add <whale-girl 本地路径>
 ```
 

@@ -29,7 +29,7 @@ whale-girl-desktop --headless
 
 ## 前置
 
-- DSH 已安装 whale-girl 插件（`dsh plugin --profile web add "github:vlln/whale-girl#main"`）
+- DSH 已安装 whale-girl 插件（`dsh plugin --profile web add whale-girl`）
 - Node ≥18；桌面渲染需 cargo（Rust 工具链）
 
 ## 行为
