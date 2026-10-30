@@ -1,6 +1,6 @@
 {
   "name": "whale-girl",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "module",
   "description": "DSH Web GUI 内的桌面宠物（QQ 宠物形态）",
   "main": "lib/index.mjs",

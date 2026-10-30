@@ -11,6 +11,7 @@ Status: implemented
 - **素材统一朝左基准（角色契约，全角色适用）**：所有状态素材人物默认朝左（flip=1 显示朝左、flip=-1 镜像显示朝右）。生图提示模板加「人物朝向一律朝左」；代码 flip 以朝左为基准（walk 向右走 flip=-1、向左走 flip=1；drag 向左拖 flip=1、向右拖 flip=-1；静态态随机转身 flip 翻转）。**代码不依赖具体角色朝向**——第二个角色遵守素材契约即零代码改动（解耦）。
 - **素材修正**：walk/eat/drag/joy/play/wake/welcome 逐帧镜像为偏左（用户肉眼审计清单 + 像素复核镜像精确生效）；所有状态统一朝左。
 - **动作间朝向连续**：flip 是模块级状态，walk/drag 的方向写入后，静态态（idle/think/wait）沿用其值渲染（setState 的 showSprite 读当前 flip）——不无谓跳回默认方向。
+- **web 拖拽零横向位移保留朝向**：纯纵向移动或重复坐标不表示向右移动；`facingFromDrag` 只在横向位移非零时更新 flip，横向反转仍即时生效。
 - **静态态随机转身**：新增纯函数 `nextFacingAt({ now, random })`（间隔 10-25s，L2 语义层代码级）决策转身时刻；tick 里静态态（idle/think/wait）到点时 `flip = -flip` 并 `applyFacing()` 刷新当前 sprite transform（不动帧/背景）；离开静态态清排程。
 - **`applyFacing` 刷新封装**：复用 showSprite 的 scale 计算，只更新 transform。
 - 沿用 v3/v4 纪律：随机决策在纯函数（注入随机源、可单测），index.mjs 薄执行。

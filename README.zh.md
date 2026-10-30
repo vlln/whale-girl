@@ -21,7 +21,7 @@
 
 ```sh
 dsh plugin --profile web add "github:vlln/whale-girl#main"   # git 源一行（构建产物已入库）
-# 或 npm 源（npm 上的版本可能落后于 main，以 git 源为准）：dsh plugin --profile web add whale-girl@0.2.0
+# 或 npm 源：dsh plugin --profile web add whale-girl@0.2.4
 # 或本地目录：dsh plugin --profile web add <whale-girl 本地路径>
 ```
 

@@ -2,7 +2,7 @@
 // v2：零负反馈——无 hunger/mood 属性状态；情绪只由事件瞬发 + 互动喜悦。
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { pickState, TRANSIENT_MS, WAKE_MS, JOY_MS, ROUND_CELEBRATE_MS, STATE_NAMES, PLAYBACK_MODES, PLAYBACK_MIN_FRAMES, deriveSessionMood, STATE_TABLE, nextWorkingRhythm, detectTurnCompleted, shouldWake, nextBlinkAt, nextFacingAt, wakeFromInteraction, memoryLine } from '../lib/client/logic.mjs'
+import { pickState, TRANSIENT_MS, WAKE_MS, JOY_MS, ROUND_CELEBRATE_MS, STATE_NAMES, PLAYBACK_MODES, PLAYBACK_MIN_FRAMES, deriveSessionMood, STATE_TABLE, nextWorkingRhythm, detectTurnCompleted, shouldWake, nextBlinkAt, nextFacingAt, facingFromDrag, wakeFromInteraction, memoryLine } from '../lib/client/logic.mjs'
 
 const IDLE = { activity: { name: 'idle', until: 0 }, dragging: false, transient: null, sleeping: false, joyUntil: 0, now: 1000 }
 
@@ -295,6 +295,29 @@ test('nextFacingAt：随机转身间隔（区间边界用注入随机源）', ()
   const a = nextFacingAt({ now: 0, random: () => 0.2 })
   const b = nextFacingAt({ now: 0, random: () => 0.8 })
   assert.notEqual(a, b)
+})
+
+test('facingFromDrag：横向移动朝向随方向切换（素材朝左基准）', () => {
+  for (const currentFlip of [1, -1]) {
+    assert.equal(facingFromDrag(-20, currentFlip), 1)
+    assert.equal(facingFromDrag(20, currentFlip), -1)
+  }
+})
+
+test('facingFromDrag：纯纵向或重复坐标保持当前朝向', () => {
+  for (const currentFlip of [1, -1]) {
+    assert.equal(facingFromDrag(0, currentFlip), currentFlip)
+    assert.equal(facingFromDrag(-0, currentFlip), currentFlip)
+  }
+})
+
+test('facingFromDrag：左拖后纵移不转身，横向反转仍即时生效', () => {
+  let flip = -1
+  const actual = [-20, 0, 0, 10, 0, -5].map((deltaX) => {
+    flip = facingFromDrag(deltaX, flip)
+    return flip
+  })
+  assert.deepEqual(actual, [1, 1, 1, -1, -1, 1])
 })
 
 // ---- v6 交互醒觉（sleep → drag → 放下立即回 sleep 的修复）----
