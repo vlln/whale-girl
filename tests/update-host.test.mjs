@@ -160,6 +160,15 @@ test('status：git 安装有新版时可更新；宿主没有包管理服务时 
   assert.equal(withoutInstall.canUpdate, false)
 })
 
+test('status：无 ref 的 git 安装查 HEAD（仓库默认分支），不把 commits 列表当提交', async () => {
+  const profileDir = makeProfile(gitLock(LOCAL_SHA))
+  const host = createUpdateHost({ self: SELF, profileDir, managerOf: managerOf('github:vlln/whale-girl'), fetchJson: fakeFetch({ '/commits/HEAD': { sha: UPSTREAM_SHA } }) })
+  const status = await host.status()
+  assert.equal(status.state, 'update-available')
+  assert.equal(status.latest.commit, UPSTREAM_SHA.slice(0, 7))
+  assert.equal('ref' in status.latest, false, 'git 安装不带 ref（客户端只把它当本地安装的跟踪线标记）')
+})
+
 test('status：registry 安装按版本比，摘要带版本号', async () => {
   const profileDir = makeProfile(registryLock('0.2.0'))
   const host = createUpdateHost({ self: SELF, profileDir, managerOf: managerOf('whale-girl@^0.1.0'), fetchJson: fakeFetch({ '/whale-girl': { 'dist-tags': { latest: '0.3.0' } } }) })
