@@ -2,7 +2,7 @@
   "name": "whale-girl",
   "version": "0.2.4",
   "type": "module",
-  "description": "DSH Web GUI 内的桌面宠物（QQ 宠物形态）",
+  "description": "Настольный питомец для DSH Web GUI (в стиле QQ-питомца); интерфейс на zh/en/ru",
   "main": "lib/index.mjs",
   "icon": "./icon.png",
   "files": [
@@ -14,7 +14,8 @@
     "lib/assets/manifest.json",
     "cordis.patch.yml",
     "icon.png",
-    "README.zh.md"
+    "README.zh.md",
+    "README.ru.md"
   ],
   "exports": {
     ".": "./lib/index.mjs",

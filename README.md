@@ -1,4 +1,4 @@
-<p align="center"><a href="README.zh.md">中文</a> | English</p>
+<p align="center"><a href="README.zh.md">中文</a> | English | <a href="README.ru.md">Русский</a></p>
 
 <h1 align="center">whale-girl</h1>
 

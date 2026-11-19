@@ -4,7 +4,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   DEFAULT_ROLE_ID, ROLE_ID_RE, parseCharacters, listCharacters, defaultCharacter,
-  getCharacter, stateOf, isKnownState,
+  getCharacter, stateOf, isKnownState, characterName,
 } from '../lib/client/character.mjs'
 
 const OLD_MANIFEST = {
@@ -35,6 +35,33 @@ test('新格式 characters + default', () => {
 test('default 指向不存在角色时回退首个角色', () => {
   const m = { characters: { a: { states: {} }, b: { states: {} } }, default: 'nope' }
   assert.equal(defaultCharacter(m), 'a')
+})
+
+test('characterName：manifest.names 按 locale 取名，缺项回退 name/id', () => {
+  const m = {
+    characters: {
+      'whale-girl': { name: '鲸鱼娘', names: { zh: '鲸鱼娘', en: 'Whale Girl', ru: 'Китодевочка' }, states: {} },
+      cat: { name: '小猫', states: {} },
+    },
+  }
+  const whale = getCharacter(m, 'whale-girl')
+  const cat = getCharacter(m, 'cat')
+  assert.equal(characterName(whale, 'ru'), 'Китодевочка')
+  assert.equal(characterName(whale, 'en-US'), 'Whale Girl')
+  assert.equal(characterName(whale, 'de'), '鲸鱼娘')
+  assert.equal(characterName(cat, 'ru'), '小猫') // 无 names → name 回退
+  assert.equal(characterName(null, 'ru'), '')
+})
+
+test('仓库 manifest 的角色名三语齐全（zh/en/ru）', async () => {
+  const { readFileSync } = await import('node:fs')
+  const manifest = JSON.parse(readFileSync(new URL('../lib/assets/manifest.json', import.meta.url), 'utf8'))
+  for (const [id, ch] of Object.entries(manifest.characters ?? {})) {
+    for (const locale of ['zh', 'en', 'ru']) {
+      assert.equal(typeof ch.names?.[locale], 'string', `${id} 缺 ${locale} 名字`)
+      assert.ok(ch.names[locale].trim() !== '', `${id}.${locale} 名字为空`)
+    }
+  }
 })
 
 test('缺省/损坏 manifest 安全回退', () => {

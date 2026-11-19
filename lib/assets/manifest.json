@@ -2,6 +2,11 @@
   "characters": {
     "whale-girl": {
       "name": "鲸鱼娘",
+      "names": {
+        "zh": "鲸鱼娘",
+        "en": "Whale Girl",
+        "ru": "Китодевочка"
+      },
       "credit": "ZipZipPipe",
       "meta": {
         "stageSize": 110

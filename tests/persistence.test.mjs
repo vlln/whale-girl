@@ -12,8 +12,16 @@ test('normalizeState: 合法账本原样归一化', () => {
   assert.deepEqual(s, {
     level: 3, xp: 150,
     stats: { tasksDone: 3, failures: 1, sessions: 2, activeMs: 1000, firstSeenAt: 100 },
-    titles: ['first-task'], memory: ['a', 'b'], updatedAt: 1234,
+    titles: ['first-task'], memory: ['a', 'b'], locale: 'zh', updatedAt: 1234,
   })
+})
+
+test('normalizeState: locale 白名单归一化（未知/非法回退 zh）', () => {
+  assert.equal(normalizeState({ xp: 10, locale: 'ru-RU', updatedAt: 0 }).locale, 'ru')
+  assert.equal(normalizeState({ xp: 10, locale: 'en', updatedAt: 0 }).locale, 'en')
+  for (const bad of ['de', '', 42, null, undefined]) {
+    assert.equal(normalizeState({ xp: 10, locale: bad, updatedAt: 0 }).locale, 'zh')
+  }
 })
 
 test('normalizeState: level 按 xp 重算（手改不一致被纠正）', () => {

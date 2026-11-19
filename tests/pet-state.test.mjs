@@ -12,7 +12,7 @@ test('初始账本为冻结默认值（零负反馈：无 hunger/mood 字段）'
   assert.deepEqual(INITIAL_STATE, {
     level: 1, xp: 0,
     stats: { tasksDone: 0, failures: 0, sessions: 0, activeMs: 0, firstSeenAt: null },
-    titles: [], memory: [], updatedAt: 0,
+    titles: [], memory: [], locale: 'zh', updatedAt: 0,
   })
   assert.equal(Object.isFrozen(INITIAL_STATE), true)
   assert.equal('hunger' in INITIAL_STATE, false)
@@ -130,4 +130,35 @@ test('回忆环形上限 MEMORY_MAX', () => {
 test('titleName 未知 id 原样返回', () => {
   assert.equal(titleName('first-task'), '初次协作')
   assert.equal(titleName('unknown-id'), 'unknown-id')
+})
+
+test('titleName：按 locale 渲染称号名（zh 为旧行为）', () => {
+  assert.equal(titleName('first-task', 'ru'), 'Первое сотрудничество')
+  assert.equal(titleName('veteran', 'en'), 'Forged veteran')
+  assert.equal(titleName('social', 'zh'), '广结善缘')
+})
+
+test('记忆日志按写入 locale 渲染，XP/称号语义不变', () => {
+  const base = { ...INITIAL_STATE, updatedAt: 0 }
+  const ru = recordTaskCompleted(base, 'сборка', NOW, 'ru').state
+  assert.equal(ru.xp, TASK_XP)
+  assert.deepEqual(ru.titles, ['first-task'])
+  assert.equal(ru.locale, 'ru')
+  assert.match(ru.memory.at(-1), /^\[\d\d:\d\d\] Задача «сборка» выполнена \(1-я\)$/)
+
+  const en = recordTaskCompleted(base, 'build', NOW, 'en').state
+  assert.equal(en.xp, TASK_XP)
+  assert.match(en.memory.at(-1), /Completed task "build" \(#1\)/)
+})
+
+test('旧记忆记录保持原文（不回溯翻译）', () => {
+  const base = {
+    ...INITIAL_STATE,
+    updatedAt: 0,
+    memory: ['[10:00] 回到旧会话，继续陪伴'],
+    stats: { ...INITIAL_STATE.stats, sessions: 1 },
+  }
+  const { state } = recordSession(base, NOW, 'ru')
+  assert.equal(state.memory[0], '[10:00] 回到旧会话，继续陪伴')
+  assert.match(state.memory.at(-1), /Новая сессия \(2-я\)/)
 })
