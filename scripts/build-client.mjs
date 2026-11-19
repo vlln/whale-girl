@@ -17,6 +17,9 @@ const OUTPUT = join(ROOT, 'lib', 'client.js')
 function resolveEsbuildBin() {
   const candidates = [
     join(ROOT, 'node_modules/.bin/esbuild'),
+    // Windows：pnpm 的 .bin/esbuild 是 sh 启动脚本，CreateProcess 无法直接执行；同目录的
+    // esbuild.exe（原生二进制的本地副本）优先于后两个候选。Linux/CI 走第一个候选，不受影响。
+    ...(process.platform === 'win32' ? [join(ROOT, 'node_modules/.bin/esbuild.exe')] : []),
     ...(process.env.DSH_CHECKOUT ? [join(process.env.DSH_CHECKOUT, 'node_modules/.bin/esbuild')] : []),
     '/tmp/dsh-0808/node_modules/.bin/esbuild',
   ]

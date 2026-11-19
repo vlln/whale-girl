@@ -65,3 +65,9 @@ test('DEFAULTS.replies：内置回话池非空且为数组', () => {
   assert.ok(Array.isArray(DEFAULTS.replies.feed) && DEFAULTS.replies.feed.length > 0)
   assert.ok(Array.isArray(DEFAULTS.replies.play) && DEFAULTS.replies.play.length > 0)
 })
+
+test('DEFAULTS.replies 与 i18n 的 zh 内置池逐字一致（防双源漂移）', async () => {
+  const { REPLIES } = await import('../lib/src/i18n.mjs')
+  assert.deepEqual(DEFAULTS.replies.feed, [...REPLIES.zh.feed])
+  assert.deepEqual(DEFAULTS.replies.play, [...REPLIES.zh.play])
+})

@@ -18,6 +18,7 @@ const GATES = [
   { name: 'verify-config-sync', group: 'local', args: ['scripts/gates/verify-config-sync.mjs'] },
   { name: 'verify-routes-sync', group: 'local', args: ['scripts/gates/verify-routes-sync.mjs'] },
   { name: 'verify-client-seams', group: 'local', args: ['scripts/gates/verify-client-seams.mjs'] },
+  { name: 'verify-i18n', group: 'local', args: ['scripts/gates/verify-i18n.mjs'] },
   { name: 'verify-gate-self-coverage', group: 'local', args: ['scripts/gates/verify-gate-self-coverage.mjs'] },
   { name: 'verify-settings-schema', group: 'local', args: ['scripts/gates/verify-settings-schema.mjs'] },
   { name: 'verify-doc-budget', group: 'local', args: ['scripts/gates/verify-doc-budget.mjs'] },
